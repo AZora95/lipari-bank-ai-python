@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -26,7 +26,7 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def add_request_id(request: Request, call_next):
+async def add_request_id(request: Request, call_next: callable) -> JSONResponse:
     request_id = str(uuid.uuid4())
     response = await call_next(request)
     response.headers["X-Request-Id"] = request_id
@@ -38,7 +38,7 @@ async def app_exception_handler(req: Request, exc: AppException) -> JSONResponse
     return JSONResponse(
         status_code=exc.status_code,
         content={
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "status": exc.status_code,
             "error": exc.code,
             "message": exc.message,
@@ -54,7 +54,7 @@ async def validation_exception_handler(
     return JSONResponse(
         status_code=422,
         content={
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "status": 422,
             "error": "VALIDATION_ERROR",
             "message": "Input non valido",

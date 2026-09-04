@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 
@@ -19,5 +19,5 @@ async def chat(req: ChatRequest) -> ChatResponse:
         tokens_used=10,
         cost_eur=0.0001,
         model_used="dummy",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )

@@ -70,7 +70,16 @@ async def validation_exception_handler(
 
 @app.exception_handler(Exception)
 async def general_exception_handler(req: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(content={"error": str(exc)})
+    return JSONResponse(
+        status_code=500,
+        content={
+            "timestamp": datetime.now(UTC).isoformat(),
+            "status": 500,
+            "error": "INTERNAL_ERROR",
+            "message": "Errore inatteso",
+            "path": req.url.path,
+        },
+    )
 
 
 @app.get("/health")

@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request
@@ -8,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 from src.api import categorize, chat, users
 from src.config import settings
-from src.exceptions import AppException
+from src.exceptions import AppError
 
 app = FastAPI(
     title=settings.app_name,
@@ -26,15 +27,18 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def add_request_id(request: Request, call_next: callable) -> JSONResponse:
+async def add_request_id(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[JSONResponse]]
+    ) -> JSONResponse:
     request_id = str(uuid.uuid4())
     response = await call_next(request)
     response.headers["X-Request-Id"] = request_id
     return response
 
 
-@app.exception_handler(AppException)
-async def app_exception_handler(req: Request, exc: AppException) -> JSONResponse:
+@app.exception_handler(AppError)
+async def app_exception_handler(req: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
         content={

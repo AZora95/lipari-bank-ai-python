@@ -1,6 +1,5 @@
 import httpx
 from fastapi import APIRouter
-
 from src.types.user import User
 
 router = APIRouter(prefix="/api/ai", tags=["Users"])

@@ -1,21 +1,21 @@
 """init
 
 Revision ID: 1717ccec34c8
-Revises: 
+Revises:
 Create Date: 2026-09-07 16:52:44.473938
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '1717ccec34c8'
-down_revision: Union[str, Sequence[str], None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -31,7 +31,8 @@ def upgrade() -> None:
     op.create_table('chat_messages',
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('session_id', sa.String(), nullable=False),
-    sa.Column('role', sa.String(), nullable=False, comment="'system' | 'user' | 'assistant' | 'tool'"),
+    sa.Column('role', sa.String(), nullable=False,
+    comment="'system' | 'user' | 'assistant' | 'tool'"),
     sa.Column('content', sa.Text(), nullable=False),
     sa.Column('tokens', sa.Integer(), nullable=False),
     sa.Column('cost_eur', sa.Float(), nullable=False),
@@ -40,7 +41,8 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['session_id'], ['chat_sessions.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_chat_messages_session_id'), 'chat_messages', ['session_id'], unique=False)
+    op.create_index(op.f('ix_chat_messages_session_id'),
+    'chat_messages', ['session_id'], unique=False)
     # ### end Alembic commands ###
 
 

@@ -23,6 +23,9 @@ target-version = "py312"
 select = ["E", "F", "W", "I", "N", "B", "ANN", "ASYNC", "UP"]
 ignore = ["ANN101", "ANN102"]  # don't require self/cls types
 
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.params.Depends"]
+
 [tool.ruff.format]
 quote-style = "double"
 

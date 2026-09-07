@@ -5,7 +5,6 @@ from src.db.session import get_db
 from src.services.chat_service import ChatService
 from src.types.chat import ChatRequest, ChatResponse
 
-
 router = APIRouter(prefix="/api/ai", tags=["Chat"])
 
 

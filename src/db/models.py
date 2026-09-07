@@ -1,7 +1,7 @@
-from datetime import UTC, datetime
 import uuid
+from datetime import UTC, datetime
 
-from sqlalchemy import String, DateTime, ForeignKey, Text, Integer
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.session import Base

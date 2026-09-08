@@ -16,8 +16,10 @@ class ChatRepository:
         return chat
 
     async def find_session(self, session_id: str) -> ChatSession | None:
-        stmt = select(ChatSession).where(ChatSession.id == session_id).options(
-            selectinload(ChatSession.messages)
+        stmt = (
+            select(ChatSession)
+            .where(ChatSession.id == session_id)
+            .options(selectinload(ChatSession.messages))
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()

@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from src.config import settings
-from src.db.session import Base
 from src.db import models  # noqa: F401  — import all models so Base.metadata is populated
+from src.db.session import Base
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

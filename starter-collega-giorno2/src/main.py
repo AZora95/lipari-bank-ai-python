@@ -28,9 +28,8 @@ app.add_middleware(
 
 @app.middleware("http")
 async def add_request_id(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[JSONResponse]]
-    ) -> JSONResponse:
+    request: Request, call_next: Callable[[Request], Awaitable[JSONResponse]]
+) -> JSONResponse:
     request_id = str(uuid.uuid4())
     response = await call_next(request)
     response.headers["X-Request-Id"] = request_id
@@ -52,9 +51,7 @@ async def app_exception_handler(req: Request, exc: AppError) -> JSONResponse:
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-    req: Request, exc: RequestValidationError
-) -> JSONResponse:
+async def validation_exception_handler(req: Request, exc: RequestValidationError) -> JSONResponse:
     return JSONResponse(
         status_code=422,
         content={

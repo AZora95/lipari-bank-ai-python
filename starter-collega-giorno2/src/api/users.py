@@ -9,7 +9,7 @@ router = APIRouter(prefix="/api/ai", tags=["Users"])
 USER_DIRECTORY_URL = "http://localhost:9000/internal/users"
 
 
-@router.get( "/users")
+@router.get("/users")
 async def list_users() -> list[User]:
     async with httpx.AsyncClient() as client:
         """Elenco utenti dalla directory interna LipariBank."""

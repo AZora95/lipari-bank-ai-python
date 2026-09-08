@@ -16,9 +16,7 @@ async def chat(req: ChatRequest, session: AsyncSession = Depends(get_db)) -> Cha
 
 
 @router.get("/chat/{session_id}/messages")
-async def list_messages(
-    session_id: str, session: AsyncSession = Depends(get_db)
-) -> list[dict]:
+async def list_messages(session_id: str, session: AsyncSession = Depends(get_db)) -> list[dict]:
     service = ChatService(session)
     messages = await service.repo.list_messages(session_id)
     return [

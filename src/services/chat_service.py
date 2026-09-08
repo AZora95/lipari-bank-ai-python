@@ -26,8 +26,9 @@ class ChatService:
 
         # In G4 chiameremo LLM. Per ora echo.
         assistant_reply = f"Echo: {req.message}"
-        await self.repo.add_message(chat.id, "assistant",
-        assistant_reply, tokens=10, cost_eur=0.0001, model_used="dummy")
+        await self.repo.add_message(
+            chat.id, "assistant", assistant_reply, tokens=10, cost_eur=0.0001, model_used="dummy"
+        )
 
         await self.session.commit()
 

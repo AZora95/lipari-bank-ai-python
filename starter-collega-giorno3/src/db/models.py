@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -35,7 +34,7 @@ class ChatMessage(Base):
     content: Mapped[str] = mapped_column(Text)
     tokens: Mapped[int] = mapped_column(Integer, default=0)
     cost_eur: Mapped[float] = mapped_column(default=0.0)
-    model_used: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    model_used: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     session: Mapped["ChatSession"] = relationship(back_populates="messages")

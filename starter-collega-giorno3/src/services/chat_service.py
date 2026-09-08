@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -40,5 +40,5 @@ class ChatService:
             tokens_used=10,
             cost_eur=0.0001,
             model_used="dummy",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )

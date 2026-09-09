@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     database_url: str
     openai_api_key: str
     anthropic_api_key: str
-    default_model: str = "gpt-4o-mini"
+    opencode_api_key: str
+    default_model: str = "big-pickle"
     embedding_model: str = "text-embedding-3-small"
     max_tokens_per_request: int = 2000
     jwt_secret: str

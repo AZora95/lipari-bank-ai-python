@@ -1,9 +1,10 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import UTC, datetime
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.db.repos import ChatRepository
-from src.llm.client import LLMProvider, Message
 from src.exceptions import ChatSessionNotFoundError
+from src.llm.client import LLMProvider, Message
 from src.types.chat import ChatRequest, ChatResponse
 
 

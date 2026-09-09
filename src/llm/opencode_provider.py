@@ -1,7 +1,8 @@
 from opencode_ai import AsyncOpencode
 from opencode_ai.types import TextPartInputParam
 
-from src.llm.types import Message, LLMResponse
+from src.llm.types import LLMResponse, Message
+
 
 class OpencodeProvider:
     PRICING = {

@@ -1,7 +1,7 @@
 from src.config import settings
+from src.llm.anthropic_provider import AnthropicProvider
 from src.llm.client import LLMProvider
 from src.llm.openai_provider import OpenAIProvider
-from src.llm.anthropic_provider import AnthropicProvider
 from src.llm.opencode_provider import OpencodeProvider
 
 

@@ -4,7 +4,6 @@ from openai import AsyncOpenAI
 from src.config import settings
 from src.types.categorize import CategorizeRequest, CategorizeResponse
 
-
 CATEGORIZE_SYSTEM = """You are an expert at categorizing Italian bank transactions.
 
 Categories:

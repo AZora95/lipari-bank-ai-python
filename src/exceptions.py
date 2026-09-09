@@ -16,8 +16,3 @@ class RateLimitError(AppError):
         super().__init__(429, "RATE_LIMIT", f"Limite raggiunto. Riprova in {retry_after_seconds}s")
         self.retry_after = retry_after_seconds
 
-
-class LLMProviderError(AppError):
-    def __init__(self, provider: str, original: str) -> None:
-        super().__init__(502, "LLM_PROVIDER_ERROR", f"Errore provider {provider}")
-        self.original = original

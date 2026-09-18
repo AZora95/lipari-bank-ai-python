@@ -1,0 +1,36 @@
+{"input": {"description": "Bonifico Enel Energia bolletta marzo", "amount": 85.50}, "expected": {"category": "UTILITIES"}}
+{"input": {"description": "Addebito SDD Italgas fornitura gas", "amount": 62.30}, "expected": {"category": "UTILITIES"}}
+{"input": {"description": "Bolletta Acea acqua trimestrale", "amount": 45.00}, "expected": {"category": "UTILITIES"}}
+{"input": {"description": "TIM fattura telefono e internet", "amount": 39.90}, "expected": {"category": "UTILITIES"}}
+{"input": {"description": "Vodafone ricarica fibra casa", "amount": 29.99}, "expected": {"category": "UTILITIES"}}
+{"input": {"description": "A2A bolletta energia elettrica", "amount": 78.20}, "expected": {"category": "UTILITIES"}}
+{"input": {"description": "Esselunga supermercato", "amount": 45.20}, "expected": {"category": "GROCERIES"}}
+{"input": {"description": "Conad City spesa settimanale", "amount": 38.75}, "expected": {"category": "GROCERIES"}}
+{"input": {"description": "Coop supermercato alimentari", "amount": 52.10}, "expected": {"category": "GROCERIES"}}
+{"input": {"description": "Lidl spesa alimentari", "amount": 27.40}, "expected": {"category": "GROCERIES"}}
+{"input": {"description": "Carrefour Market spesa", "amount": 33.60}, "expected": {"category": "GROCERIES"}}
+{"input": {"description": "Eurospin supermercato", "amount": 19.85}, "expected": {"category": "GROCERIES"}}
+{"input": {"description": "Distributore IP carburante", "amount": 60.00}, "expected": {"category": "TRANSPORT"}}
+{"input": {"description": "Trenitalia biglietto treno Milano-Roma", "amount": 49.90}, "expected": {"category": "TRANSPORT"}}
+{"input": {"description": "ATM biglietto mezzi pubblici Milano", "amount": 22.00}, "expected": {"category": "TRANSPORT"}}
+{"input": {"description": "Eni Station rifornimento benzina", "amount": 55.00}, "expected": {"category": "TRANSPORT"}}
+{"input": {"description": "Parcheggio Autostrade per l'Italia", "amount": 12.50}, "expected": {"category": "TRANSPORT"}}
+{"input": {"description": "Telepass pedaggio autostradale", "amount": 18.30}, "expected": {"category": "TRANSPORT"}}
+{"input": {"description": "Ristorante La Vigna", "amount": 35.00}, "expected": {"category": "RESTAURANTS"}}
+{"input": {"description": "Pizzeria Da Michele", "amount": 24.50}, "expected": {"category": "RESTAURANTS"}}
+{"input": {"description": "Bar Centrale colazione", "amount": 8.50}, "expected": {"category": "RESTAURANTS"}}
+{"input": {"description": "McDonald's pranzo", "amount": 12.90}, "expected": {"category": "RESTAURANTS"}}
+{"input": {"description": "Trattoria Il Gatto Nero cena", "amount": 62.00}, "expected": {"category": "RESTAURANTS"}}
+{"input": {"description": "Sushi Yamamoto cena", "amount": 45.00}, "expected": {"category": "RESTAURANTS"}}
+{"input": {"description": "Netflix abbonamento", "amount": 12.99}, "expected": {"category": "ENTERTAINMENT"}}
+{"input": {"description": "Spotify Premium abbonamento", "amount": 9.99}, "expected": {"category": "ENTERTAINMENT"}}
+{"input": {"description": "Cinema UCI multiplex biglietto", "amount": 15.00}, "expected": {"category": "ENTERTAINMENT"}}
+{"input": {"description": "Palestra Virgin Active abbonamento mensile", "amount": 59.90}, "expected": {"category": "ENTERTAINMENT"}}
+{"input": {"description": "PlayStation Store acquisto gioco", "amount": 69.99}, "expected": {"category": "ENTERTAINMENT"}}
+{"input": {"description": "Disney+ abbonamento annuale", "amount": 89.90}, "expected": {"category": "ENTERTAINMENT"}}
+{"input": {"description": "Bonifico generico Mario Rossi", "amount": 50.00}, "expected": {"category": "OTHER"}}
+{"input": {"description": "Bonifico a favore di Giulia Bianchi", "amount": 100.00}, "expected": {"category": "OTHER"}}
+{"input": {"description": "Prelievo contante ATM", "amount": 200.00}, "expected": {"category": "OTHER"}}
+{"input": {"description": "Versamento assegno", "amount": 300.00}, "expected": {"category": "OTHER"}}
+{"input": {"description": "Bonifico affitto appartamento", "amount": 650.00}, "expected": {"category": "OTHER"}}
+{"input": {"description": "Donazione beneficenza Croce Rossa", "amount": 25.00}, "expected": {"category": "OTHER"}}

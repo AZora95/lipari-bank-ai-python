@@ -1,0 +1,59 @@
+name: Weekly Eval
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # ogni lunedì 6:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: lipari
+          POSTGRES_PASSWORD: lipari
+          POSTGRES_DB: lipari_ai
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lipari"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://lipari:lipari@localhost:5432/lipari_ai
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      OLLAMA_BASE_URL: http://localhost:11434
+      EMBEDDING_MODEL: nomic-embed-text
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+
+      - run: uv sync
+
+      - name: Install and start Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          for i in $(seq 1 30); do curl -sf http://localhost:11434 && break; sleep 1; done
+          ollama pull nomic-embed-text
+
+      - name: Run DB migrations
+        run: uv run alembic upgrade head
+
+      - name: Seed RAG documents
+        run: |
+          uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 &
+          for i in $(seq 1 30); do curl -sf http://localhost:8000/health && break; sleep 1; done
+          uv run python scripts/ingest_docs.py
+
+      - name: Run evals
+        run: uv run pytest -m eval -v

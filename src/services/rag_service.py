@@ -1,18 +1,12 @@
+from pathlib import Path
+
 from src.llm.client import LLMProvider, Message
-from src.services.retrieval_service import RetrievalService, RetrievalResult
+from src.services.retrieval_service import RetrievalService
 from src.types.advice import AdviceRequest, AdviceResponse, Citation
 
-
-ADVICE_SYSTEM = """Sei un advisor bancario LipariBank esperto.
-
-Hai accesso a documenti ufficiali (regolamenti, tariffe, condizioni). Rispondi alla domanda dell'utente basandoti ESCLUSIVAMENTE sui CONTESTO forniti.
-
-Regole:
-- Se la risposta non è nei contesti, dillo onestamente ("Non ho informazioni su...").
-- Cita sempre il documento da cui prendi l'informazione: [doc_id: <id>].
-- Tono professionale, sintetico.
-- Risposta in italiano.
-"""
+ADVICE_SYSTEM = (
+    Path(__file__).parent.parent / "prompts" / "advice_system_v1.md"
+).read_text(encoding="utf-8")
 
 
 class RAGService:
@@ -34,7 +28,8 @@ class RAGService:
 
         # 2. Build context string
         context_parts = [
-            f"[doc_id: {c.document_id}, chunk: {c.chunk_id}, similarity: {c.similarity:.2f}]\n{c.content}"
+            f"[doc_id: {c.document_id}, chunk: {c.chunk_id}, "
+            f"similarity: {c.similarity:.2f}]\n{c.content}"
             for c in chunks
         ]
         context = "\n\n---\n\n".join(context_parts)

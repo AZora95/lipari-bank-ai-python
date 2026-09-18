@@ -1,9 +1,8 @@
-import re
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.models import DocumentChunk
-from src.llm.embedding_client import EmbeddingClient
 from src.lib.chunking import chunk_text
+from src.llm.embedding_client import EmbeddingClient
 
 
 class IngestService:
@@ -13,7 +12,8 @@ class IngestService:
 
     async def ingest_document(
         self, document_id: str, content: str, metadata: dict | None = None,
-    ) -> int:
+    ) -> tuple[int, int]:
+        """Ingest a document. Returns (chunk_count, embedding_dim)."""
         chunks = chunk_text(content, chunk_size=500, overlap=50)
         embeddings = await self.embedding_client.embed(chunks)
 
@@ -28,4 +28,5 @@ class IngestService:
             self.session.add(db_chunk)
 
         await self.session.commit()
-        return len(chunks)
+        embedding_dim = len(embeddings[0]) if embeddings else 0
+        return len(chunks), embedding_dim

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from src.config import settings
 from src.llm.client import LLMProvider, Message
 from src.services.retrieval_service import RetrievalService
 from src.types.advice import AdviceRequest, AdviceResponse, Citation
@@ -16,7 +17,7 @@ class RAGService:
 
     async def answer(self, req: AdviceRequest) -> AdviceResponse:
         # 1. Retrieve top-k chunks
-        chunks = await self.retrieval.retrieve(req.question, top_k=5)
+        chunks = await self.retrieval.retrieve(req.question, top_k=settings.rag_top_k)
 
         if not chunks:
             return AdviceResponse(
@@ -47,7 +48,7 @@ RISPOSTA (con citazioni):"""
                 Message(role="system", content=ADVICE_SYSTEM),
                 Message(role="user", content=user_prompt),
             ],
-            max_tokens=800,
+            max_tokens=settings.rag_max_tokens,
         )
 
         # 4. Build citations from retrieved chunks

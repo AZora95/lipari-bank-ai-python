@@ -2,7 +2,7 @@ from pathlib import Path
 
 from src.llm.client import LLMProvider
 from src.llm.factory import get_llm_provider
-from src.llm.types import Message
+from src.llm.types import LLMResponse, Message
 
 from src.config import settings
 from src.types.categorize import CategorizeRequest, CategorizeResponse
@@ -38,6 +38,7 @@ class CategorizeService:
     ) -> None:
         self.llm = llm
         self.system_prompt = system_prompt
+        self.last_response: LLMResponse | None = None
 
     async def categorize(self, req: CategorizeRequest) -> CategorizeResponse:
         llm = self.llm or get_llm_provider()
@@ -54,4 +55,5 @@ class CategorizeService:
         ]
 
         response = await llm.complete(messages, max_tokens=500)
+        self.last_response = response
         return CategorizeResponse.model_validate_json(response.content)

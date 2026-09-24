@@ -1,7 +1,4 @@
-from datetime import datetime
-
-from sqlalchemy import func, select
-from sqlalchemy.engine import Row
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -56,18 +53,3 @@ class ChatRepository:
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
-
-    async def cost_report(self, since: datetime) -> list[Row[tuple[str | None, float, int, int]]]:
-        """Aggregate cost/tokens/messages per model for assistant replies since a given time."""
-        stmt = (
-            select(
-                ChatMessage.model_used,
-                func.sum(ChatMessage.cost_eur),
-                func.sum(ChatMessage.tokens),
-                func.count(ChatMessage.id),
-            )
-            .where(ChatMessage.created_at >= since, ChatMessage.role == "assistant")
-            .group_by(ChatMessage.model_used)
-        )
-        result = await self.session.execute(stmt)
-        return list(result.all())

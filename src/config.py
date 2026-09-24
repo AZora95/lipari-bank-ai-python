@@ -22,8 +22,6 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     max_tokens_per_request: int = 2000
     jwt_secret: str
-    rag_top_k: int = 5
-    rag_max_tokens: int = 800
 
 
 settings = Settings()  # raise at import if missing required

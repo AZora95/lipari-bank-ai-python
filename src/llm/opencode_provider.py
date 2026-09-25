@@ -1,10 +1,13 @@
-from opencode_ai import AsyncOpencode
+from opencode_ai import APIError, AsyncOpencode
 from opencode_ai.types import TextPartInputParam
 
+from src.llm.client import LLMProviderError
 from src.llm.types import LLMResponse, Message
 
 
 class OpencodeProvider:
+    PROVIDER_NAME = "opencode"
+
     PRICING = {
         "opencode-big-pickle": (0.0, 0.0),  # Big Pickle è gratuito
     }
@@ -16,16 +19,20 @@ class OpencodeProvider:
         self.model = model
 
     async def complete(self, messages: list[Message], max_tokens: int = 500) -> LLMResponse:
-        session = await self.client.session.create()
-
         parts = [TextPartInputParam(text=m.content, type="text") for m in messages]
 
-        response = await self.client.session.chat(
-            id=session.id,  # Opencode è stateful e ricorda le conversazioni tramite session ID. Per semplicita al momento ne creiamo sempre una nuova
-            model_id="opencode-big-pickle",
-            provider_id="opencode/big-pickle",
-            parts=parts,
-        )
+        # errore del server opencode -> LLMProviderError, come gli altri provider:
+        # e' quello che i chiamanti sanno gestire (fallback, 502)
+        try:
+            session = await self.client.session.create()
+            response = await self.client.session.chat(
+                id=session.id,  # Opencode è stateful e ricorda le conversazioni tramite session ID. Per semplicita al momento ne creiamo sempre una nuova
+                model_id="opencode-big-pickle",
+                provider_id="opencode/big-pickle",
+                parts=parts,
+            )
+        except APIError as exc:
+            raise LLMProviderError(self.PROVIDER_NAME, self.model, str(exc)) from exc
 
         # print(f"{response}")
 

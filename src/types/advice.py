@@ -28,3 +28,6 @@ class AdviceResponse(BaseModel):
     citations: list[Citation]
     tokens_used: int
     cost_eur: float
+    rewritten_query: str | None = Field(
+        None, description="La query con cui il sistema ha cercato: serve a capire le risposte fuori bersaglio"
+    )

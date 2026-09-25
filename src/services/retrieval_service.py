@@ -1,9 +1,11 @@
-from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
+from sqlalchemy import text as sql
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.models import DocumentChunk
+from src.auth.acl import visible_to
 from src.llm.embedding_client import EmbeddingClient
+
+SOGLIA_PREDEFINITA = 0.35     # misurata sui documenti di LipariBank, non universale
 
 
 class RetrievalResult(BaseModel):
@@ -11,36 +13,72 @@ class RetrievalResult(BaseModel):
     document_id: str
     content: str
     similarity: float
-    metadata: dict
 
 
 class RetrievalService:
-    def __init__(self, session: AsyncSession, embedding_client: EmbeddingClient) -> None:
+    """La ricerca vettoriale sui passaggi dei documenti."""
+
+    SQL = sql(
+        """
+        SELECT id, document_id, content,
+               1 - (embedding <=> CAST(:q AS vector)) AS similarity
+        FROM document_chunks
+        WHERE 1 - (embedding <=> CAST(:q AS vector)) >= :soglia
+        ORDER BY embedding <=> CAST(:q AS vector)
+        LIMIT :k
+        """
+    )
+
+    # la SQL di sopra con UNA riga in piu': AND visibility = ANY(:livelli)
+    SQL_PER_RUOLO = sql(
+        """
+        SELECT id, document_id, content,
+               1 - (embedding <=> CAST(:q AS vector)) AS similarity
+        FROM document_chunks
+        WHERE 1 - (embedding <=> CAST(:q AS vector)) >= :soglia
+          AND visibility = ANY(:livelli)
+        ORDER BY embedding <=> CAST(:q AS vector)
+        LIMIT :k
+        """
+    )
+
+    def __init__(self, session: AsyncSession, embedder: EmbeddingClient) -> None:
         self.session = session
-        self.embedding_client = embedding_client
+        self.embedder = embedder
 
-    async def retrieve(self, query: str, top_k: int = 5) -> list[RetrievalResult]:
-        query_embedding = await self.embedding_client.embed_one(query)
+    async def search(
+        self, question: str, top_k: int = 5, soglia: float = SOGLIA_PREDEFINITA
+    ) -> list[RetrievalResult]:
+        """I passaggi più vicini alla domanda, dal più vicino, SENZA filtro per ruolo.
 
-        # SQL raw per pgvector operator
-        stmt = text("""
-            SELECT id, document_id, content, chunk_metadata,
-                   1 - (embedding <=> :query_emb) AS similarity
-            FROM document_chunks
-            ORDER BY embedding <=> :query_emb
-            LIMIT :top_k
-        """)
+        Solo per ingestione e script, dove non c'è un utente: nessun percorso che parte
+        da una richiesta HTTP deve chiamarlo. Sotto la soglia non torna niente.
+        """
+        query_vec = await self.embedder.embed_one(question)
+        righe = await self.session.execute(
+            self.SQL, {"q": str(query_vec), "k": top_k, "soglia": soglia}
+        )
+        return self._risultati(righe)
 
-        result = await self.session.execute(stmt, {"query_emb": str(query_embedding), "top_k": top_k})
-        rows = result.fetchall()
+    async def search_for_user(
+        self, query_vec: list[float], role: str, top_k: int = 5
+    ) -> list[RetrievalResult]:
+        """I passaggi più vicini FRA QUELLI che questo ruolo può vedere."""
+        righe = await self.session.execute(
+            self.SQL_PER_RUOLO,
+            {"q": str(query_vec), "k": top_k, "soglia": SOGLIA_PREDEFINITA,
+             "livelli": visible_to(role)},
+        )
+        return self._risultati(righe)
 
+    @staticmethod
+    def _risultati(righe) -> list[RetrievalResult]:
         return [
             RetrievalResult(
-                chunk_id=row.id,
-                document_id=row.document_id,
-                content=row.content,
-                similarity=row.similarity,
-                metadata=row.chunk_metadata,
+                chunk_id=str(r.id),
+                document_id=r.document_id,
+                content=r.content,
+                similarity=float(r.similarity),
             )
-            for row in rows
+            for r in righe
         ]

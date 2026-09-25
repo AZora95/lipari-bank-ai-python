@@ -16,3 +16,6 @@ class RateLimitError(AppError):
         super().__init__(429, "RATE_LIMIT", f"Limite raggiunto. Riprova in {retry_after_seconds}s")
         self.retry_after = retry_after_seconds
 
+class InvalidCredentialsError(AppError):
+    def __init__(self) -> None:
+        super().__init__(401, "INVALID_CREDENTIALS", "Credenziali non valide")

@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from src.api import categorize, chat
 from src.config import settings
 from src.exceptions import AppError
-from src.api import advice
+from src.api import advice, auth
 
 app = FastAPI(
     title=settings.app_name,
@@ -69,4 +69,4 @@ async def health() -> dict[str, str]:
 app.include_router(chat.router)
 app.include_router(categorize.router)
 app.include_router(advice.router)
-
+app.include_router(auth.router)

@@ -42,7 +42,8 @@ class RetrievalService:
         """
     )
 
-    def __init__(self, session: AsyncSession, embedder: EmbeddingClient) -> None:
+    # embedder serve solo a search(): search_for_user riceve il vettore già calcolato
+    def __init__(self, session: AsyncSession, embedder: EmbeddingClient | None = None) -> None:
         self.session = session
         self.embedder = embedder
 
@@ -54,6 +55,8 @@ class RetrievalService:
         Solo per ingestione e script, dove non c'è un utente: nessun percorso che parte
         da una richiesta HTTP deve chiamarlo. Sotto la soglia non torna niente.
         """
+        if self.embedder is None:
+            raise RuntimeError("search() richiede un EmbeddingClient nel costruttore")
         query_vec = await self.embedder.embed_one(question)
         righe = await self.session.execute(
             self.SQL, {"q": str(query_vec), "k": top_k, "soglia": soglia}

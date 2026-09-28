@@ -1,8 +1,9 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
+from decimal import Decimal
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, JSON
+from sqlalchemy import Date, DateTime, ForeignKey, Numeric, Integer, String, Text, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.session import Base
@@ -64,3 +65,43 @@ class AppUser(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(32), default="operator")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+
+class Customer(Base):
+    __tablename__ = "customers"
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)     # il codice cliente
+    full_name: Mapped[str] = mapped_column(String(120))
+    operator: Mapped[str] = mapped_column(String(64), index=True)     # chi lo ha in portafoglio
+
+
+class Account(Base):
+    __tablename__ = "accounts"
+
+    id: Mapped[str] = mapped_column(String(34), primary_key=True)     # l'IBAN
+    customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id"), index=True)
+    label: Mapped[str] = mapped_column(String(64))                    # "principale", "risparmio"
+    balance: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+
+
+class Movement(Base):
+    __tablename__ = "movements"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), index=True)
+    booking_date: Mapped[date] = mapped_column(Date)       # la data contabile
+    description: Mapped[str] = mapped_column(String(200))
+    amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))            # negativo = uscita
+
+
+class ComplianceAlert(Base):
+    __tablename__ = "compliance_alerts"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), index=True)
+    opened_by: Mapped[str] = mapped_column(String(64))                 # username dal token
+    reason: Mapped[str] = mapped_column(Text)
+    amount: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    idempotency_key: Mapped[str] = mapped_column(String(128), unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )

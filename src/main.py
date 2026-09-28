@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from src.api import advice, auth, categorize, chat
+from src.api import advice, agent, auth, categorize, chat
 from src.config import settings
 from src.exceptions import AppError
 
@@ -69,3 +69,4 @@ app.include_router(chat.router)
 app.include_router(categorize.router)
 app.include_router(advice.router)
 app.include_router(auth.router)
+app.include_router(agent.router)

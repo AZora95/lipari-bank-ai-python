@@ -45,6 +45,5 @@ class AlertService:
         return alert, True
 
     async def _per_chiave(self, chiave: str) -> ComplianceAlert | None:
-        return await self.session.scalar(
-            select(ComplianceAlert).where(ComplianceAlert.idempotency_key == chiave)
-        )
+        stmt = select(ComplianceAlert).where(ComplianceAlert.idempotency_key == chiave)
+        return (await self.session.scalars(stmt)).first()

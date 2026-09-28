@@ -36,13 +36,16 @@ class OpencodeProvider:
 
         # print(f"{response}")
 
+        # il server risponde {info, parts}, ma l'SDK tipizza AssistantMessage senza quei campi:
+        # arrivano come campi extra (i modelli dell'SDK hanno extra="allow")
+        extra = response.model_extra or {}
         text = next(
-            (p["text"] for p in response.parts if p.get("type") == "text"),
+            (p["text"] for p in extra.get("parts", []) if p.get("type") == "text"),
             "",
         )
 
         # Questi al momento sono Any. Vanno modellati e validati
-        tokens = response.info.get("tokens", {})
+        tokens = extra.get("info", {}).get("tokens", {})
         input_tokens = tokens.get("input", 0)
         output_tokens = tokens.get("output", 0)
 

@@ -1,3 +1,4 @@
+from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -26,7 +27,7 @@ async def get_current_user(
     return UserContext(username=username, role=payload.get("role", "public"))
 
 
-def require_role(*allowed: str):
+def require_role(*allowed: str) -> Callable[[UserContext], Awaitable[UserContext]]:
     """Dependency factory: consente l'accesso solo ai ruoli indicati."""
 
     async def _check(

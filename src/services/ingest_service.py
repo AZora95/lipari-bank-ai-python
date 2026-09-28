@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.models import DocumentChunk
@@ -11,7 +13,7 @@ class IngestService:
         self.embedding_client = embedding_client
 
     async def ingest_document(
-        self, document_id: str, content: str, metadata: dict | None = None,
+        self, document_id: str, content: str, metadata: dict[str, Any] | None = None,
     ) -> tuple[int, int]:
         """Ingest a document. Returns (chunk_count, embedding_dim)."""
         chunks = chunk_text(content, chunk_size=500, overlap=50)

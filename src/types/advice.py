@@ -1,10 +1,12 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
 class IngestRequest(BaseModel):
     document_id: str = Field(..., max_length=100)
     content: str = Field(..., min_length=10)
-    metadata: dict | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class IngestResponse(BaseModel):

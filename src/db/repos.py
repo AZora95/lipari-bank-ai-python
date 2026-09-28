@@ -59,11 +59,12 @@ class AccountRepository:
 
     async def of_user(self, username: str, account_id: str) -> Account | None:
         """Il conto, solo se è di un cliente nel portafoglio di questo operatore."""
-        return await self.session.scalar(
+        stmt = (
             select(Account)
             .join(Customer, Customer.id == Account.customer_id)
             .where(Account.id == account_id, Customer.operator == username)
         )
+        return (await self.session.scalars(stmt)).first()
 
     async def of_customer(self, username: str, customer_id: str) -> list[Account]:
         """I conti di un cliente, solo se il cliente è nel portafoglio di questo operatore."""

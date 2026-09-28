@@ -1,4 +1,7 @@
+from typing import Any
+
 from pydantic import BaseModel
+from sqlalchemy import Result
 from sqlalchemy import text as sql
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -75,7 +78,7 @@ class RetrievalService:
         return self._risultati(righe)
 
     @staticmethod
-    def _risultati(righe) -> list[RetrievalResult]:
+    def _risultati(righe: Result[Any]) -> list[RetrievalResult]:
         return [
             RetrievalResult(
                 chunk_id=str(r.id),

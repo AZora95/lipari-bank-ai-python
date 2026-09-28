@@ -1,6 +1,7 @@
 import uuid
 from datetime import UTC, date, datetime
 from decimal import Decimal
+from typing import Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import Date, DateTime, ForeignKey, Numeric, Integer, String, Text, JSON
@@ -53,7 +54,7 @@ class DocumentChunk(Base):
     chunk_index: Mapped[int] = mapped_column(Integer)
     content: Mapped[str] = mapped_column(Text)
     embedding: Mapped[list[float]] = mapped_column(Vector(768))
-    chunk_metadata: Mapped[dict] = mapped_column(JSON, default=dict)
+    chunk_metadata: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     visibility: Mapped[str] = mapped_column(String(32), default="public", index=True)
 
 class AppUser(Base):

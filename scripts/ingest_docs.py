@@ -4,7 +4,7 @@ from pathlib import Path
 import httpx
 
 
-async def main():
+async def main() -> None:
     docs_dir = Path("data/docs")
     paths = await asyncio.to_thread(lambda: sorted(docs_dir.glob("*.md")))
     async with httpx.AsyncClient(timeout=60.0) as client:

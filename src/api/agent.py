@@ -21,7 +21,7 @@ class AgentResponse(BaseModel):
     reply: str
     steps: int
     tool_calls: list[str]
-    stopped_by: str        # "model" | "max_steps" | "budget": si distingue senza leggere il testo
+    stopped_by: str  # "model" | "max_steps" | "budget": si distingue senza leggere il testo
     cost_eur: float
 
 
@@ -32,13 +32,19 @@ async def agent(
     deps: Annotated[Deps, Depends(get_deps)],
 ) -> AgentResponse:
     run = await run_agent(
-        messaggi=[{"role": "system", "content": AGENT_SYSTEM},
-                  {"role": "user", "content": payload.message}],
-        tools=build_tools_for(user, deps),      # ← i tool nascono qui, per lui
+        messaggi=[
+            {"role": "system", "content": AGENT_SYSTEM},
+            {"role": "user", "content": payload.message},
+        ],
+        tools=build_tools_for(user, deps),  # ← i tool nascono qui, per lui
         client=deps.openai,
         model=deps.model,
     )
     return AgentResponse(
-        run_id=run.run_id, reply=run.reply, steps=run.steps,
-        tool_calls=run.tool_calls, stopped_by=run.stopped_by, cost_eur=float(run.cost_eur),
+        run_id=run.run_id,
+        reply=run.reply,
+        steps=run.steps,
+        tool_calls=run.tool_calls,
+        stopped_by=run.stopped_by,
+        cost_eur=float(run.cost_eur),
     )

@@ -38,7 +38,9 @@ class ChatService:
 
         # Save assistant message
         await self.repo.add_message(
-            chat.id, "assistant", llm_response.content,
+            chat.id,
+            "assistant",
+            llm_response.content,
             tokens=llm_response.tokens_used,
             cost_eur=llm_response.cost_eur,
             model_used=llm_response.model,

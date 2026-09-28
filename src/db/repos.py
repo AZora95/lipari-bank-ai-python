@@ -2,7 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.db.models import ChatMessage, ChatSession, Account, Customer, Movement
+from src.db.models import Account, ChatMessage, ChatSession, Customer, Movement
+
 
 class ChatRepository:
     def __init__(self, session: AsyncSession) -> None:
@@ -52,6 +53,7 @@ class ChatRepository:
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+
 
 class AccountRepository:
     def __init__(self, session: AsyncSession) -> None:

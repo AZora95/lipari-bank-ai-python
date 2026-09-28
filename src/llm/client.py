@@ -1,8 +1,7 @@
 from typing import Protocol
 
-from src.llm.types import LLMResponse, Message
-
 from src.exceptions import AppError
+from src.llm.types import LLMResponse, Message
 
 __all__ = ["LLMProvider", "LLMProviderError", "LLMResponse", "Message"]
 
@@ -14,7 +13,6 @@ class LLMProviderError(AppError):
         self.provider = provider
         self.model = model
         super().__init__(502, "LLM_PROVIDER_ERROR", f"[{provider}:{model}] {message}")
-
 
 
 class LLMProvider(Protocol):

@@ -5,10 +5,9 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from src.api import categorize, chat
+from src.api import advice, auth, categorize, chat
 from src.config import settings
 from src.exceptions import AppError
-from src.api import advice, auth
 
 app = FastAPI(
     title=settings.app_name,

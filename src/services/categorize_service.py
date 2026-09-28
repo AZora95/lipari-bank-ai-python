@@ -3,8 +3,6 @@ from pathlib import Path
 from src.llm.client import LLMProvider
 from src.llm.factory import get_llm_provider
 from src.llm.types import Message
-
-from src.config import settings
 from src.types.categorize import CategorizeRequest, CategorizeResponse
 
 CATEGORIZE_SYSTEM = """You are an expert at categorizing Italian bank transactions.
@@ -21,13 +19,13 @@ Subcategory: specifica più precisa in italiano (es. "ENERGY", "SUPERMARKET", "F
 Confidence: tua sicurezza 0.0-1.0.
 Reasoning: 1-2 frasi spiegando la scelta.
 
-Return only a valid JSON object without markdown delimiters and with these fields: category, subcategory,
-confidence, reasoning.
+Return only a valid JSON object without markdown delimiters
+and with these fields: category, subcategory, confidence, reasoning.
 """
 
-SYSTEM_PROMPT = (
-    Path(__file__).parent.parent / "prompts" / "chat_system_v1.md"
-).read_text(encoding="utf-8")
+SYSTEM_PROMPT = (Path(__file__).parent.parent / "prompts" / "chat_system_v1.md").read_text(
+    encoding="utf-8"
+)
 
 
 class CategorizeService:
@@ -46,10 +44,7 @@ class CategorizeService:
             Message(role="system", content=CATEGORIZE_SYSTEM),
             Message(
                 role="user",
-                content=(
-                    f"Description: {req.description}\n"
-                    f"Amount: €{req.amount} {req.currency}"
-                ),
+                content=(f"Description: {req.description}\nAmount: €{req.amount} {req.currency}"),
             ),
         ]
 

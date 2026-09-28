@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.acl import visible_to
 from src.llm.embedding_client import EmbeddingClient
 
-SOGLIA_PREDEFINITA = 0.35     # misurata sui documenti di LipariBank, non universale
+SOGLIA_PREDEFINITA = 0.35  # misurata sui documenti di LipariBank, non universale
 
 
 class RetrievalResult(BaseModel):
@@ -72,8 +72,12 @@ class RetrievalService:
         """I passaggi più vicini FRA QUELLI che questo ruolo può vedere."""
         righe = await self.session.execute(
             self.SQL_PER_RUOLO,
-            {"q": str(query_vec), "k": top_k, "soglia": SOGLIA_PREDEFINITA,
-             "livelli": visible_to(role)},
+            {
+                "q": str(query_vec),
+                "k": top_k,
+                "soglia": SOGLIA_PREDEFINITA,
+                "livelli": visible_to(role),
+            },
         )
         return self._risultati(righe)
 

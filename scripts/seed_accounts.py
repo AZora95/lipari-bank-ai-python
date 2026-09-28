@@ -9,7 +9,7 @@ from src.db.session import AsyncSessionLocal
 
 CLIENTI = [  # (codice cliente, nome, operatore che lo ha in portafoglio)
     ("C-10234", "Paolo Ferri", "mbianchi"),
-    ("C-20417", "Anna Greco", "pgalli"),          # un collega di un'altra filiale
+    ("C-20417", "Anna Greco", "pgalli"),  # un collega di un'altra filiale
 ]
 CONTI = [  # (iban, codice cliente, etichetta, saldo)
     ("IT60X0542811101000000123", "C-10234", "principale", Decimal("48200.00")),
@@ -35,8 +35,10 @@ async def main() -> None:
         session.add_all(Account(id=i, customer_id=c, label=e, balance=s) for i, c, e, s in CONTI)
         await session.flush()
         oggi = date.today()
-        session.add_all(Movement(account_id=i, booking_date=oggi - timedelta(days=g),
-                                 description=d, amount=a) for i, g, d, a in MOVIMENTI)
+        session.add_all(
+            Movement(account_id=i, booking_date=oggi - timedelta(days=g), description=d, amount=a)
+            for i, g, d, a in MOVIMENTI
+        )
         await session.commit()
     print(f"{len(CLIENTI)} clienti, {len(CONTI)} conti e {len(MOVIMENTI)} movimenti creati.")
 

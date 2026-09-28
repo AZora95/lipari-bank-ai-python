@@ -21,7 +21,7 @@ class Deps:
     alerts: AlertService
     retrieval: RetrievalService
     embedder: EmbeddingClient
-    openai: AsyncOpenAI          # il client grezzo: `complete` del Giorno 4 non ha i tool
+    openai: AsyncOpenAI  # il client grezzo: `complete` del Giorno 4 non ha i tool
     model: str
 
 

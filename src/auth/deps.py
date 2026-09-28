@@ -21,9 +21,7 @@ async def get_current_user(
     payload = decode_token(token)
     username = payload.get("sub")
     if not isinstance(username, str):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token senza subject"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token senza subject")
     return UserContext(username=username, role=payload.get("role", "public"))
 
 

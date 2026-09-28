@@ -14,9 +14,9 @@ from src.types.advice import AdviceRequest, AdviceResponse, Citation
 
 logger = logging.getLogger(__name__)
 
-ADVICE_SYSTEM = (
-    Path(__file__).parent.parent / "prompts" / "advice_system_v1.md"
-).read_text(encoding="utf-8")
+ADVICE_SYSTEM = (Path(__file__).parent.parent / "prompts" / "advice_system_v1.md").read_text(
+    encoding="utf-8"
+)
 
 
 @dataclass
@@ -33,8 +33,7 @@ class Fasi:
     @property
     def total_ms(self) -> int:
         return (
-            self.rewrite_ms + self.embedding_ms + self.retrieval_ms
-            + self.prompt_ms + self.llm_ms
+            self.rewrite_ms + self.embedding_ms + self.retrieval_ms + self.prompt_ms + self.llm_ms
         )
 
 
@@ -88,9 +87,7 @@ class RAGService:
             user_prompt = self._build_prompt(req.question, chunks)
 
         with _cronometro(fasi, "llm_ms"):
-            llm_response, fasi.used_fallback = await self._generate_or_degrade(
-                user_prompt, chunks
-            )
+            llm_response, fasi.used_fallback = await self._generate_or_degrade(user_prompt, chunks)
 
         self._log(fasi, user, chunks)
         return AdviceResponse(

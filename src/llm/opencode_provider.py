@@ -13,9 +13,7 @@ class OpencodeProvider:
     }
 
     def __init__(self, api_key: str, model: str = "opencode-big-pickle") -> None:
-        self.client = AsyncOpencode(
-            base_url="http://localhost:4096"
-        )
+        self.client = AsyncOpencode(base_url="http://localhost:4096")
         self.model = model
 
     async def complete(self, messages: list[Message], max_tokens: int = 500) -> LLMResponse:
@@ -26,7 +24,9 @@ class OpencodeProvider:
         try:
             session = await self.client.session.create()
             response = await self.client.session.chat(
-                id=session.id,  # Opencode è stateful e ricorda le conversazioni tramite session ID. Per semplicita al momento ne creiamo sempre una nuova
+                # Opencode è stateful e ricorda le conversazioni tramite session ID.
+                # Per semplicita al momento ne creiamo sempre una nuova
+                id=session.id,
                 model_id="opencode-big-pickle",
                 provider_id="opencode/big-pickle",
                 parts=parts,

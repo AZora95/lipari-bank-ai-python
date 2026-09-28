@@ -5,18 +5,19 @@ Revises: 5dba50630ac2
 Create Date: 2026-09-15 09:36:43.118280
 
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
 from pgvector.sqlalchemy import Vector
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = 'f441f0dcfc89'
-down_revision: Union[str, Sequence[str], None] = '5dba50630ac2'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "f441f0dcfc89"
+down_revision: str | Sequence[str] | None = "5dba50630ac2"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -30,7 +31,11 @@ def upgrade() -> None:
         sa.Column("embedding", Vector(768)),
         sa.Column("chunk_metadata", sa.JSON, default={}),
     )
-    op.execute("CREATE INDEX ix_document_chunks_embedding ON document_chunks USING hnsw (embedding vector_cosine_ops)")
+    op.execute(
+        "CREATE INDEX ix_document_chunks_embedding ON document_chunks"
+        "USING hnsw (embedding vector_cosine_ops)"
+    )
+
 
 def downgrade() -> None:
     """Downgrade schema."""

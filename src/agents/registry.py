@@ -13,8 +13,8 @@ class Tool:
     name: str
     description: str
     args_model: type[BaseModel]
-    run: Callable[[Any], Awaitable[str]]   # riceve un'istanza di args_model, già validata
-    scrive: bool = True                    # chi non lo dichiara è trattato come chi scrive
+    run: Callable[[Any], Awaitable[str]]  # riceve un'istanza di args_model, già validata
+    scrive: bool = True  # chi non lo dichiara è trattato come chi scrive
 
     def to_openai_schema(self) -> ChatCompletionToolParam:
         schema = self.args_model.model_json_schema()

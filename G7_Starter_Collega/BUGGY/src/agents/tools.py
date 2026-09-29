@@ -2,11 +2,11 @@ import logging
 from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
+from src.deps import Deps
 
 from src.agents.registry import Tool
 from src.auth.deps import UserContext
 from src.db.models import ComplianceAlert
-from src.deps import Deps
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +46,7 @@ def build_tools_for(user: UserContext, deps: Deps) -> list[Tool]:
         righe = await deps.accounts.movements(args.account_id, giorni=args.giorni)
         if not righe:
             return "nessun movimento nel periodo richiesto"
-        return "\n".join(
-            f"{m.data:%Y-%m-%d} {m.importo:>10} {m.causale}" for m in righe
-        )
+        return "\n".join(f"{m.data:%Y-%m-%d} {m.importo:>10} {m.causale}" for m in righe)
 
     class DocsArgs(BaseModel):
         query: str = Field(description="La domanda, in forma completa.")

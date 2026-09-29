@@ -31,9 +31,7 @@ class Deps:
 def _openai_client() -> AsyncOpenAI:
     # uno per processo, riusato: il pool di connessioni vive nel client (Giorno 4)
     # Ollama ignora la chiave, ma l'SDK ne vuole una; timeout largo: il modello gira in locale
-    return AsyncOpenAI(
-        api_key="ollama", base_url=f"{settings.ollama_base_url}/v1", timeout=120.0
-    )
+    return AsyncOpenAI(api_key="ollama", base_url=f"{settings.ollama_base_url}/v1", timeout=120.0)
 
 
 def crea_deps(

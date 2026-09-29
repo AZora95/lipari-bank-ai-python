@@ -2,13 +2,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
+from src.deps import Deps, get_deps
 
 from src.agents.loop import run_agent
 from src.agents.prompts import agent_system
 from src.agents.tools import build_tools_for
 from src.auth.deps import UserContext, get_current_user
 from src.config import settings
-from src.deps import Deps, get_deps
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 

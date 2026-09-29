@@ -149,10 +149,13 @@ def build_tools_for(user: UserContext, deps: Deps) -> list[Tool]:
             documenti,
             scrive=False,
         ),
-        Tool("apri_segnalazione_compliance",
+        Tool(
+            "apri_segnalazione_compliance",
             "Apre una segnalazione alla Compliance su un conto del portafoglio. Usalo solo se "
             "l'utente lo chiede o se la policy recuperata la rende obbligatoria.",
-            SegnalazioneArgs, segnalazione,
+            SegnalazioneArgs,
+            segnalazione,
             # Giorno 8: sopra soglia, o senza importo, decide una persona
-            serve_approvazione=_sopra_soglia),
+            serve_approvazione=_sopra_soglia,
+        ),
     ]

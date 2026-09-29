@@ -13,17 +13,35 @@ class RunRepository:
         self.session = session
 
     async def sospendi(
-        self, *, run_id: str, username: str, role: str, messages: list[dict[str, Any]],
-        pending_calls: list[dict[str, Any]], description: str, steps: int,
-        cost_eur: Decimal, tool_calls: list[str],
+        self,
+        *,
+        run_id: str,
+        username: str,
+        role: str,
+        messages: list[dict[str, Any]],
+        pending_calls: list[dict[str, Any]],
+        description: str,
+        steps: int,
+        cost_eur: Decimal,
+        tool_calls: list[str],
     ) -> None:
         """Salva il run in attesa. `merge`: lo stesso run può fermarsi più di una volta."""
-        await self.session.merge(AgentRunState(
-            id=run_id, username=username, role=role, status="awaiting_approval",
-            messages=messages, pending_calls=pending_calls, description=description,
-            steps=steps, cost_eur=cost_eur, tool_calls=tool_calls,
-            decided_by=None, decision_reason=None,
-        ))
+        await self.session.merge(
+            AgentRunState(
+                id=run_id,
+                username=username,
+                role=role,
+                status="awaiting_approval",
+                messages=messages,
+                pending_calls=pending_calls,
+                description=description,
+                steps=steps,
+                cost_eur=cost_eur,
+                tool_calls=tool_calls,
+                decided_by=None,
+                decision_reason=None,
+            )
+        )
         await self.session.commit()
 
     async def get(self, run_id: str) -> AgentRunState | None:
@@ -38,15 +56,17 @@ class RunRepository:
         esito = await self.session.execute(
             update(AgentRunState)
             .where(AgentRunState.id == run_id, AgentRunState.status == "awaiting_approval")
-            .values(status=stato, decided_by=da, decision_reason=motivo,
-                    updated_at=datetime.now(UTC))
+            .values(
+                status=stato, decided_by=da, decision_reason=motivo, updated_at=datetime.now(UTC)
+            )
         )
         await self.session.commit()
         return bool(getattr(esito, "rowcount", 0))
 
     async def chiudi(self, run_id: str, stato: str) -> None:
         await self.session.execute(
-            update(AgentRunState).where(AgentRunState.id == run_id)
+            update(AgentRunState)
+            .where(AgentRunState.id == run_id)
             .values(status=stato, updated_at=datetime.now(UTC))
         )
         await self.session.commit()

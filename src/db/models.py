@@ -5,8 +5,8 @@ from typing import Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import JSON, Date, DateTime, ForeignKey, Integer, Numeric, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.session import Base
 
@@ -113,21 +113,22 @@ class ComplianceAlert(Base):
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
+
 # ---- Giorno 8: lo stato di un run che si ferma e riprende
-JSON_O_JSONB = JSON().with_variant(JSONB(), "postgresql")    # JSONB su Postgres, JSON nei test
+JSON_O_JSONB = JSON().with_variant(JSONB(), "postgresql")  # JSONB su Postgres, JSON nei test
 
 
 class AgentRunState(Base):
     __tablename__ = "agent_runs"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)      # il run_id del Giorno 7
-    username: Mapped[str] = mapped_column(String(64), index=True)      # chi ha chiesto
-    role: Mapped[str] = mapped_column(String(32))                      # i tool si rifanno per lui
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # il run_id del Giorno 7
+    username: Mapped[str] = mapped_column(String(64), index=True)  # chi ha chiesto
+    role: Mapped[str] = mapped_column(String(32))  # i tool si rifanno per lui
     status: Mapped[str] = mapped_column(String(32), index=True)
     # awaiting_approval | running | done | rejected
-    messages: Mapped[list[dict[str, Any]]] = mapped_column(JSON_O_JSONB)   # ← lo stato
+    messages: Mapped[list[dict[str, Any]]] = mapped_column(JSON_O_JSONB)  # ← lo stato
     pending_calls: Mapped[list[dict[str, Any]]] = mapped_column(JSON_O_JSONB)
-    description: Mapped[str] = mapped_column(Text)                     # cosa si sta approvando
+    description: Mapped[str] = mapped_column(Text)  # cosa si sta approvando
     steps: Mapped[int] = mapped_column(Integer)
     cost_eur: Mapped[Decimal] = mapped_column(Numeric(12, 6))
     tool_calls: Mapped[list[str]] = mapped_column(JSON_O_JSONB)
@@ -137,6 +138,7 @@ class AgentRunState(Base):
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC),
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )

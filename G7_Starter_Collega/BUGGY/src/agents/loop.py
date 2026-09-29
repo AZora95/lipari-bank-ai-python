@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass, field
 
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageFunctionToolCall
 
 from src.agents.registry import Tool
 
@@ -36,7 +37,9 @@ async def run_agent(
         run.steps += 1
 
         response = await client.chat.completions.create(
-            model=model, messages=messages, tools=schemas,
+            model=model,
+            messages=messages,
+            tools=schemas,
         )
         choice = response.choices[0].message
 
@@ -48,14 +51,16 @@ async def run_agent(
 
         for call in choice.tool_calls:
             run.tool_calls.append(call.function.name)
-            messages.append({
-                "role": "tool",
-                "tool_call_id": call.id,
-                "content": await _execute(by_name, call),
-            })
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": call.id,
+                    "content": await _execute(by_name, call),
+                }
+            )
 
 
-async def _execute(by_name: dict[str, Tool], call) -> str:
+async def _execute(by_name: dict[str, Tool], call: ChatCompletionMessageFunctionToolCall) -> str:
     # niente try/except: se un tool esplode vogliamo vedere l'errore vero
     tool = by_name[call.function.name]
     args = tool.args_model.model_validate_json(call.function.arguments)

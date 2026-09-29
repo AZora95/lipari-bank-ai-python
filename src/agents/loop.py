@@ -24,6 +24,7 @@ BUDGET_PER_RUN = Decimal("0.05")  # euro
 PREZZI_PER_1K = {  # euro per mille token (ingresso, uscita), come al Giorno 4
     "gpt-4o-mini": (Decimal("0.00014"), Decimal("0.00056")),
     "gpt-4o": (Decimal("0.0023"), Decimal("0.0091")),
+    "qwen2.5:7b": (Decimal("0"), Decimal("0")),  # locale su Ollama: nessun costo per token
 }
 
 

@@ -28,7 +28,10 @@ class Deps:
 @lru_cache
 def _openai_client() -> AsyncOpenAI:
     # uno per processo, riusato: il pool di connessioni vive nel client (Giorno 4)
-    return AsyncOpenAI(api_key=settings.openai_api_key, timeout=20.0)
+    # Ollama ignora la chiave, ma l'SDK ne vuole una; timeout largo: il modello gira in locale
+    return AsyncOpenAI(
+        api_key="ollama", base_url=f"{settings.ollama_base_url}/v1", timeout=120.0
+    )
 
 
 async def get_deps(db: Annotated[AsyncSession, Depends(get_db)]) -> Deps:
@@ -39,5 +42,5 @@ async def get_deps(db: Annotated[AsyncSession, Depends(get_db)]) -> Deps:
         retrieval=RetrievalService(db),
         embedder=EmbeddingClient(),
         openai=_openai_client(),
-        model=settings.default_model,
+        model=settings.agent_model,
     )

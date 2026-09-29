@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     default_model: str = "big-pickle"
     embedding_model: str = "nomic-embed-text"
     ollama_base_url: str = "http://localhost:11434"
+    # l'agente usa un modello locale di Ollama, via l'API compatibile OpenAI: servono i tool
+    agent_model: str = "qwen2.5:7b"
     max_tokens_per_request: int = 2000
     jwt_secret: str
 

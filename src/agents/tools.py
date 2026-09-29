@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from src.agents.deps import Deps
 from src.agents.registry import Tool
 from src.auth.deps import UserContext
+from src.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,11 @@ class SegnalazioneArgs(BaseModel):
     importo: Decimal | None = Field(
         default=None, gt=0, description="L'importo dell'operazione, se c'è."
     )
+
+
+def _sopra_soglia(a: SegnalazioneArgs) -> bool:
+    """Un importo che non c'è non è un importo piccolo: nel dubbio si chiede."""
+    return a.importo is None or a.importo > settings.soglia_approvazione_eur
 
 
 def build_tools_for(user: UserContext, deps: Deps) -> list[Tool]:
@@ -143,11 +149,10 @@ def build_tools_for(user: UserContext, deps: Deps) -> list[Tool]:
             documenti,
             scrive=False,
         ),
-        Tool(
-            "apri_segnalazione_compliance",
+        Tool("apri_segnalazione_compliance",
             "Apre una segnalazione alla Compliance su un conto del portafoglio. Usalo solo se "
             "l'utente lo chiede o se la policy recuperata la rende obbligatoria.",
-            SegnalazioneArgs,
-            segnalazione,
-        ),
+            SegnalazioneArgs, segnalazione,
+            # Giorno 8: sopra soglia, o senza importo, decide una persona
+            serve_approvazione=_sopra_soglia),
     ]

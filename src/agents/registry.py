@@ -13,8 +13,11 @@ class Tool:
     name: str
     description: str
     args_model: type[BaseModel]
-    run: Callable[[Any], Awaitable[str]]  # riceve un'istanza di args_model, già validata
-    scrive: bool = True  # chi non lo dichiara è trattato come chi scrive
+    run: Callable[[Any], Awaitable[str]]   # riceve un'istanza di args_model, già validata
+    scrive: bool = True                    # chi non lo dichiara è trattato come chi scrive
+    # Solo per chi scrive: dice, dagli argomenti validati, se serve l'approvazione.
+    # None vuol dire «sempre»: il tool nuovo che nessuno ha pensato è protetto.
+    serve_approvazione: Callable[[Any], bool] | None = None
 
     def to_openai_schema(self) -> ChatCompletionToolParam:
         schema = self.args_model.model_json_schema()

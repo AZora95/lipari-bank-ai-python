@@ -12,6 +12,7 @@ from src.agents.deps import Deps
 from src.auth.deps import UserContext
 from src.db.models import Account, Customer, Movement
 from src.db.repos import AccountRepository, MovementRepository
+from src.db.runs import RunRepository
 from src.db.session import Base
 from src.llm.embedding_client import EmbeddingClient
 from src.services.alerts import AlertService
@@ -110,6 +111,7 @@ def deps_reali(session: AsyncSession) -> Deps:
         accounts=AccountRepository(session),
         movements=MovementRepository(session),
         alerts=AlertService(session),
+        runs=RunRepository(session),
         retrieval=RetrievalService(session),
         embedder=EmbeddingClient(),
         openai=AsyncMock(),

@@ -31,6 +31,7 @@ TABELLE_DEL_GIORNO = [
     "llm_calls",  # dal Giorno 9: gli endpoint dell'agente registrano il costo
 ]
 
+
 def risposta(
     *,
     tool: str | None = None,

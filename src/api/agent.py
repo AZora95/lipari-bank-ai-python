@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -10,6 +11,7 @@ from src.agents.prompts import AGENT_SYSTEM
 from src.agents.supervisor import run_supervisor
 from src.agents.tools import build_tools_for
 from src.auth.deps import UserContext, get_current_user, require_role
+from src.observability.ledger import CostLedger
 
 router = APIRouter(prefix="/api/ai", tags=["agent"])
 
@@ -76,6 +78,7 @@ async def agent(
         runs=deps.runs,
         user=user,  # Giorno 8: dove fermarsi, e per chi
     )
+    await _registra(deps, "agent", user.username, run.run_id, run.cost_eur)
     return _risposta(run)
 
 
@@ -87,6 +90,7 @@ async def supervisor(
 ) -> SupervisorResponse:
     """La stessa domanda, divisa fra specialisti. Per confrontarla con /agent, costo compreso."""
     esito = await run_supervisor(user, payload.message, deps)
+    await _registra(deps, "supervisor", user.username, None, esito.cost_eur)
     return SupervisorResponse(
         risposta=esito.risposta,
         instradamento=esito.instradamento,
@@ -148,6 +152,7 @@ async def _decidi(
         raise HTTPException(
             status.HTTP_403_FORBIDDEN, "Chi ha richiesto l'azione non può deciderla"
         )
+    gia_registrato = Decimal(stato.cost_eur)  # la parte prima della sospensione: c'è già
 
     # 3. la decisione si scrive una volta sola: l'UPDATE condizionato fa vincere un clic,
     #    e da qui la riga dice chi ha deciso e quando — prima che l'azione parta
@@ -165,4 +170,16 @@ async def _decidi(
     # 5. e si chiude, a meno che il run non si sia fermato di nuovo
     if ripreso.stopped_by != "awaiting_approval":
         await deps.runs.chiudi(run_id, "done" if approvato else "rejected")
+    # il costo del run è cumulativo: nel registro va solo quello speso dopo la ripresa
+    await _registra(deps, "agent", stato.username, run_id, ripreso.cost_eur - gia_registrato)
     return _risposta(ripreso)
+
+
+async def _registra(
+    deps: Deps, endpoint: str, username: str, run_id: str | None, costo: Decimal
+) -> None:
+    """Giorno 9: il costo nel registro. La sessione è quella dei servizi dell'agente."""
+    CostLedger(deps.runs.session).aggiungi(
+        endpoint=endpoint, username=username, model=deps.model, cost_eur=costo, run_id=run_id
+    )
+    await deps.runs.session.commit()

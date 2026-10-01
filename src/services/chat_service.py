@@ -1,10 +1,14 @@
 from datetime import UTC, datetime
+from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.db.models import ChatSession
 from src.db.repos import ChatRepository
 from src.exceptions import ChatSessionNotFoundError
 from src.llm.client import LLMProvider, Message
+from src.llm.types import LLMResponse
+from src.observability.ledger import CostLedger
 from src.types.chat import ChatRequest, ChatResponse
 
 
@@ -30,23 +34,10 @@ class ChatService:
             messages.append(Message(role=m.role, content=m.content))
         messages.append(Message(role="user", content=req.message))
 
-        # Save user message
-        await self.repo.add_message(chat.id, "user", req.message)
-
         # Call LLM
         llm_response = await self.llm.complete(messages, max_tokens=500)
 
-        # Save assistant message
-        await self.repo.add_message(
-            chat.id,
-            "assistant",
-            llm_response.content,
-            tokens=llm_response.tokens_used,
-            cost_eur=llm_response.cost_eur,
-            model_used=llm_response.model,
-        )
-
-        await self.session.commit()
+        await self._salva(chat, req.message, llm_response)
 
         return ChatResponse(
             session_id=chat.id,
@@ -56,3 +47,22 @@ class ChatService:
             model_used=llm_response.model,
             created_at=datetime.now(UTC),
         )
+
+    async def _salva(self, chat: ChatSession, domanda: str, risposta: LLMResponse) -> None:
+        await self.repo.add_message(chat.id, "user", domanda)
+        await self.repo.add_message(
+            chat.id,
+            "assistant",
+            risposta.content,
+            tokens=risposta.tokens_used,
+            cost_eur=risposta.cost_eur,
+            model_used=risposta.model,
+        )
+        CostLedger(self.session).aggiungi(  # Giorno 9: il costo anche nel registro
+            endpoint="chat",
+            username=chat.user_id,
+            model=risposta.model,
+            tokens=risposta.tokens_used,
+            cost_eur=Decimal(str(risposta.cost_eur)),
+        )
+        await self.session.commit()  # una volta, a lavoro finito: le tre scritture valgono insieme

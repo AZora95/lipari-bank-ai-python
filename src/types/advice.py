@@ -1,12 +1,16 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
+
+# i livelli della matrice in src/auth/acl.py: un livello che non c'è nessun ruolo lo vedrebbe
+Visibility = Literal["public", "internal", "risk_only", "compliance_only"]
 
 
 class IngestRequest(BaseModel):
     document_id: str = Field(..., max_length=100)
     content: str = Field(..., min_length=10)
     metadata: dict[str, Any] | None = None
+    visibility: Visibility = "public"
 
 
 class IngestResponse(BaseModel):

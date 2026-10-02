@@ -1,25 +1,23 @@
-import httpx
-
-from src.config import settings
+from openai import AsyncOpenAI
 
 
 class EmbeddingClient:
-    def __init__(self) -> None:
-        # self.client = AsyncOpenAI(api_key=settings.openai_api_key)
-        self.base_url = settings.ollama_base_url
-        self.model = settings.embedding_model
+    """Gli embedding dall'API compatibile OpenAI: in questo progetto è quella di Ollama, su /v1.
+
+    /v1 restituisce i vettori normalizzati, il vecchio /api/embeddings no: la direzione è la
+    stessa, e il retrieval confronta il coseno, quindi l'indice già costruito resta valido.
+    """
+
+    def __init__(self, client: AsyncOpenAI, model: str) -> None:
+        self.client = client
+        self.model = model
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
-        embeddings = []
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            for text in texts:
-                response = await client.post(
-                    f"{self.base_url}/api/embeddings",
-                    json={"model": self.model, "prompt": text},
-                )
-                response.raise_for_status()
-                embeddings.append(response.json()["embedding"])
-        return embeddings
+        if not texts:
+            return []
+        # un lotto, una chiamata: l'API accetta la lista intera
+        risposta = await self.client.embeddings.create(model=self.model, input=texts)
+        return [d.embedding for d in sorted(risposta.data, key=lambda d: d.index)]
 
     async def embed_one(self, text: str) -> list[float]:
         result = await self.embed([text])

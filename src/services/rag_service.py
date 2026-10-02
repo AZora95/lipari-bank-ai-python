@@ -29,6 +29,7 @@ class Fasi:
     prompt_ms: int = 0
     llm_ms: int = 0
     used_fallback: bool = False
+    cache_hit: bool = False  # Giorno 10: la riscrittura veniva dalla cache condivisa
 
     @property
     def total_ms(self) -> int:
@@ -64,7 +65,8 @@ class RAGService:
         fasi = Fasi()
 
         with _cronometro(fasi, "rewrite_ms"):
-            search_query = await self.rewriter.rewrite(req.question)
+            riscrittura = await self.rewriter.riscrivi_per_ricerca(req.question)
+        search_query, fasi.cache_hit = riscrittura.testo, riscrittura.da_cache
 
         with _cronometro(fasi, "embedding_ms"):
             query_vec = await self.embedder.embed_one(search_query)
@@ -101,8 +103,9 @@ class RAGService:
                 )
                 for c in chunks
             ],
-            tokens_used=llm_response.tokens_used,
-            cost_eur=llm_response.cost_eur,
+            # Giorno 10: nel costo anche la riscrittura, che fino a ieri non si vedeva
+            tokens_used=llm_response.tokens_used + riscrittura.tokens,
+            cost_eur=llm_response.cost_eur + float(riscrittura.cost_eur),
             rewritten_query=search_query,
         )
 

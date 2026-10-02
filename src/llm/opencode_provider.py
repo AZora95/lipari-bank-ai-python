@@ -1,6 +1,7 @@
 from opencode_ai import APIError, AsyncOpencode
 from opencode_ai.types import TextPartInputParam
 
+from src.config import settings
 from src.llm.client import LLMProviderError
 from src.llm.types import LLMResponse, Message
 
@@ -13,7 +14,7 @@ class OpencodeProvider:
     }
 
     def __init__(self, api_key: str, model: str = "opencode-big-pickle") -> None:
-        self.client = AsyncOpencode(base_url="http://localhost:4096")
+        self.client = AsyncOpencode(base_url=settings.opencode_base_url)
         self.model = model
 
     async def complete(self, messages: list[Message], max_tokens: int = 500) -> LLMResponse:

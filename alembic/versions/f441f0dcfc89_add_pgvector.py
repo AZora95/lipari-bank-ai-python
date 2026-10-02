@@ -32,7 +32,7 @@ def upgrade() -> None:
         sa.Column("chunk_metadata", sa.JSON, default={}),
     )
     op.execute(
-        "CREATE INDEX ix_document_chunks_embedding ON document_chunks"
+        "CREATE INDEX ix_document_chunks_embedding ON document_chunks "
         "USING hnsw (embedding vector_cosine_ops)"
     )
 

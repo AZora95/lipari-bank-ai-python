@@ -22,11 +22,15 @@ class Settings(BaseSettings):
     default_model: str = "big-pickle"
     embedding_model: str = "nomic-embed-text"
     ollama_base_url: str = "http://localhost:11434"
+    # il server di `opencode serve`: in locale sul portatile, nel compose il servizio opencode
+    opencode_base_url: str = "http://localhost:4096"
     # l'agente usa un modello locale di Ollama, via l'API compatibile OpenAI: servono i tool
     agent_model: str = "qwen2.5:7b"
     max_tokens_per_request: int = 2000
     jwt_secret: str
     soglia_approvazione_eur: Decimal = Decimal("5000")  # sopra, decide una persona
+    # Giorno 10: vuota vuol dire «niente Redis» — le cache restano nel processo, come in sviluppo
+    redis_url: str = ""
 
 
 settings = Settings()  # raise at import if missing required

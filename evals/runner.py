@@ -13,11 +13,12 @@ from src.agents.deps import crea_deps
 from src.agents.loop import run_agent
 from src.agents.prompts import AGENT_SYSTEM
 from src.agents.tools import build_tools_for
+from src.api.advice import REWRITER_SYSTEM
 from src.auth.deps import UserContext
 from src.db.session import AsyncSessionLocal
 from src.llm.client import LLMProvider
 from src.llm.embedding_client import EmbeddingClient
-from src.llm.factory import get_llm_provider
+from src.llm.factory import get_embedder, get_llm_provider
 from src.llm.rewriter import QueryRewriter
 from src.llm.types import LLMResponse, Message
 from src.services.categorize_service import CategorizeService
@@ -246,7 +247,7 @@ async def main() -> int:
         # le note dei casi le scrivi tu, e possono contenere qualunque carattere: uno che la
         # codifica del terminale non ha diventa «?» invece di un'eccezione a fine esecuzione
         sys.stdout.reconfigure(errors="replace")
-    embedder = EmbeddingClient()
+    embedder = get_embedder()
     # un contatore per servizio: il costo di uno non si somma a quello dell'altro
     spesa = Contatore(get_llm_provider())
     riscrittura = Contatore(get_llm_provider())
@@ -256,7 +257,7 @@ async def main() -> int:
             await eval_categorize(DATASETS / "categorize.jsonl", CategorizeService(spesa), spesa),
             await eval_advice(
                 DATASETS / "advice.jsonl",
-                QueryRewriter(riscrittura),
+                QueryRewriter(riscrittura, REWRITER_SYSTEM),
                 embedder,
                 RetrievalService(s),
             ),

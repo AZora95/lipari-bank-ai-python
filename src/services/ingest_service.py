@@ -44,3 +44,5 @@ class IngestService:
         await self.session.commit()
         embedding_dim = len(embeddings[0]) if embeddings else 0
         return len(chunks), embedding_dim
+
+    ingest = ingest_document  # il nome del Code Blueprint, che i test usano: stessi argomenti

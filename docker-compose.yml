@@ -1,15 +1,147 @@
-version: "3.8"
+x-app: &app
+  build: .
+  image: lipari-bank-ai:dev
+  environment:
+    DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-lipari}:${POSTGRES_PASSWORD:-lipari}@postgres:5432/${POSTGRES_DB:-lipari_ai}
+    REDIS_URL: redis://cache:6379/0
+    # i due servizi del compose al posto di localhost: dentro un container localhost è lui
+    OLLAMA_BASE_URL: http://ollama:11434
+    OPENCODE_BASE_URL: http://opencode:4096
+    JWT_SECRET: ${JWT_SECRET:?serve JWT_SECRET nel .env}
+    # Settings le vuole, ma con i modelli di default non si usano: vuote vanno bene
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    OPENCODE_API_KEY: ${OPENCODE_API_KEY:-}
+    DEFAULT_MODEL: ${DEFAULT_MODEL:-opencode-big-pickle}
+    EMBEDDING_MODEL: ${EMBEDDING_MODEL:-nomic-embed-text}
+    AGENT_MODEL: ${AGENT_MODEL:-qwen2.5:7b}
+
 services:
+  # lo stesso Postgres di prima: nome, volume e porta restano, e con loro i dati e uv run
   postgres:
     image: pgvector/pgvector:pg16 # PostgreSQL 16 + pgvector preinstallato
     environment:
-      POSTGRES_USER: lipari
-      POSTGRES_PASSWORD: lipari
-      POSTGRES_DB: lipari_ai
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-lipari}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lipari}
+      POSTGRES_DB: ${POSTGRES_DB:-lipari_ai}
     volumes:
       - lipari-ai-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lipari} -d ${POSTGRES_DB:-lipari_ai}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"   # il DATABASE_URL del .env, quello di uv run e dei test
+
+  cache:
+    image: redis:7-alpine
+    # niente persistenza, e un tetto di memoria con sfratto: dentro c'è solo ciò che si ricalcola
+    command: ["redis-server", "--save", "", "--appendonly", "no",
+              "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:0.34.1   # la versione dell'Ollama del portatile
+    volumes:
+      - ollama-models:/root/.ollama
+    # niente ports: l'API lo trova sulla rete del compose, e la 11434 resta all'Ollama del PC
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    # con una GPU NVIDIA e Docker Desktop su WSL2, togli i commenti; senza, gira su CPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  ollama-pull:
+    image: ollama/ollama:0.34.1
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    # scarica solo i modelli che mancano: la prima volta qualche GB, poi niente, anche offline
+    command:
+      - >-
+        for m in ${EMBEDDING_MODEL:-nomic-embed-text} ${AGENT_MODEL:-qwen2.5:7b}; do
+        ollama show "$$m" >/dev/null 2>&1 || ollama pull "$$m" || exit 1; done
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  opencode:
+    build: ./docker/opencode
+    image: lipari-opencode:dev
+    # il progetto di opencode del repo: il default_agent e la persona liparibank
+    volumes:
+      - ./opencode.json:/workspace/opencode.json:ro
+      - ./.opencode/agent:/workspace/.opencode/agent:ro
+    # niente ports: serve senza password, quindi resta sulla rete del compose
+    healthcheck:
+      test: ["CMD", "node", "-e",
+             "fetch('http://127.0.0.1:4096/doc').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    <<: *app
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  seed:
+    <<: *app
+    # utenti, conti e, se l'indice è vuoto, i documenti: gli embedding li calcola Ollama
+    command: ["python", "-m", "scripts.seed_all"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      cache:
+        condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
+
+  api:
+    <<: *app
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      cache:
+        condition: service_healthy
+      ollama-pull:
+        condition: service_completed_successfully
+      opencode:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    # la sonda del Giorno 10: healthy quando il database risponde
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+    stop_grace_period: 40s       # più del --graceful-timeout: altrimenti SIGKILL dopo 10 secondi
+    deploy:
+      resources:
+        limits:
+          memory: 1g             # il primo processo che cresce non si prende la macchina
 
 volumes:
   lipari-ai-data:
+  ollama-models:

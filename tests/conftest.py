@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from datetime import date
 from decimal import Decimal
 from typing import Any
@@ -9,14 +9,17 @@ from openai.types.chat import ChatCompletion
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.agents.deps import Deps
-from src.auth.deps import UserContext
+from src.api.advice import get_rewriter
+from src.auth.deps import UserContext, get_current_user
 from src.db.models import Account, Customer, Movement
 from src.db.repos import AccountRepository, MovementRepository
 from src.db.runs import RunRepository
 from src.db.session import Base
-from src.llm.embedding_client import EmbeddingClient
+from src.llm.factory import get_embedder, get_llm_provider
+from src.main import app
 from src.services.alerts import AlertService
 from src.services.retrieval_service import RetrievalService
+from tests.finti import MARCO, ModelloEco, embedder_finto, riscrittore_spento
 
 CLIENTE_DI_MARCO = "C-10234"  # nel portafoglio di mbianchi
 CLIENTE_ALTRUI = "C-20417"  # nel portafoglio di un collega, pgalli
@@ -65,6 +68,25 @@ def risposta(
             },
         }
     )
+
+
+@pytest.fixture(autouse=True)
+def app_dei_test() -> Iterator[None]:
+    """I default di ogni test che chiama l'app: Marco senza token, un modello che ripete gratis,
+    niente riscrittura, embedding finti. Nessun test parla con Ollama o con opencode per caso;
+    chi vuole altro lo sostituisce nel test, e all'uscita tutto torna com'era."""
+    prima = dict(app.dependency_overrides)
+    app.dependency_overrides.update(
+        {
+            get_current_user: lambda: MARCO,
+            get_llm_provider: ModelloEco,
+            get_rewriter: riscrittore_spento,
+            get_embedder: embedder_finto,
+        }
+    )
+    yield
+    app.dependency_overrides.clear()
+    app.dependency_overrides.update(prima)
 
 
 @pytest.fixture
@@ -120,7 +142,7 @@ def deps_reali(session: AsyncSession) -> Deps:
         alerts=AlertService(session),
         runs=RunRepository(session),
         retrieval=RetrievalService(session),
-        embedder=EmbeddingClient(),
+        embedder=embedder_finto(),
         openai=AsyncMock(),
         model="gpt-4o-mini",
     )

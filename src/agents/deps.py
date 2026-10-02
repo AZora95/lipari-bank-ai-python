@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends
@@ -11,6 +10,7 @@ from src.db.repos import AccountRepository, MovementRepository
 from src.db.runs import RunRepository
 from src.db.session import get_db
 from src.llm.embedding_client import EmbeddingClient
+from src.llm.factory import get_embedder, get_openai
 from src.services.alerts import AlertService
 from src.services.retrieval_service import RetrievalService
 
@@ -27,13 +27,6 @@ class Deps:
     model: str
 
 
-@lru_cache
-def _openai_client() -> AsyncOpenAI:
-    # uno per processo, riusato: il pool di connessioni vive nel client (Giorno 4)
-    # Ollama ignora la chiave, ma l'SDK ne vuole una; timeout largo: il modello gira in locale
-    return AsyncOpenAI(api_key="ollama", base_url=f"{settings.ollama_base_url}/v1", timeout=120.0)
-
-
 def crea_deps(
     db: AsyncSession, *, embedder: EmbeddingClient | None = None, openai: AsyncOpenAI | None = None
 ) -> Deps:
@@ -44,8 +37,8 @@ def crea_deps(
         alerts=AlertService(db),
         runs=RunRepository(db),
         retrieval=RetrievalService(db),
-        embedder=embedder or EmbeddingClient(),  # i test li passano; altrimenti, Ollama locale
-        openai=openai or _openai_client(),
+        embedder=embedder or get_embedder(),  # i test li passano; altrimenti, Ollama locale
+        openai=openai or get_openai(),
         model=settings.agent_model,
     )
 
